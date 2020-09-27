@@ -1,6 +1,6 @@
 const inquirer = require("inquirer");
-const fs = require("fs");
-const generateMarkdown = require("./utils/generateMarkdown");
+const writeFile = require("./utils/write.js");
+const generateMarkdown = require("./utils/generateMarkdown.js");
 
 // array of questions for user
 const projectQuestions = () => {
@@ -70,7 +70,7 @@ const projectQuestions = () => {
         if (usage) {
           return true;
         } else {
-          console.log("Program instructions are required");
+          console.log("\nProgram instructions are required");
           return false;
         }
       },
@@ -83,12 +83,6 @@ const creditPrompts = (projectData) => {
   if (!projectData.contrib) {
     projectData.contrib = [];
   }
-  // introduces to new section
-  console.log(`
-  =======
-  Credits
-  =======
-  `);
 
   return (
     inquirer
@@ -104,7 +98,7 @@ const creditPrompts = (projectData) => {
               return true;
             } else {
               console.log(
-                "Input at least one credit. Put N/A if not applicable."
+                "\nInput at least one credit. Put N/A if not applicable."
               );
               return false;
             }
@@ -130,33 +124,103 @@ const creditPrompts = (projectData) => {
 };
 
 const licensePrompt = (projectData) => {
-  console.log(`
-    =======
-    License
-    =======
-    `);
+  if (!projectData.license) {
+    projectData.license = [];
+  }
 
-  return inquirer.prompt([
-    {
-      type: "checkbox",
-      name: "licenses",
-      message: "Choose from the following licenses. (Check one)",
-      choices: [
-        "MIT License",
-        "GNU GPLv3",
-        "GNU AGPLv3",
-        "GNU LGPLv3",
-        "Unlicense",
-      ],
-    },
-  ]);
+  return inquirer
+    .prompt([
+      // gets licensing information from popular licenses
+      {
+        type: "list",
+        name: "license",
+        message: "Choose from the following licenses. (Check one)",
+        choices: [
+          "MIT License",
+          "GNU GPLv3",
+          "GNU AGPLv3",
+          "GNU LGPLv3",
+          "Unlicense",
+        ],
+      },
+    ])
+    .then((licenseData) => {
+      projectData.license.push(licenseData);
+      return projectData;
+    });
 };
 
-// function to write README file
-function writeToFile(fileName, data) {}
+const contactInfo = (projectData) => {
+  if (!projectData.contact) {
+    projectData.contact = [];
+  }
+
+  console.log(`
+  ========================
+  Contact Info & Questions
+  ========================
+  `);
+
+  return inquirer
+    .prompt([
+      //   collects name
+      {
+        type: "input",
+        name: "fullName",
+        message:
+          "Please type in your full name for contact and licensing (required)",
+        validate: (fullNameVal) => {
+          if (fullNameVal) {
+            return true;
+          } else {
+            console.log("\nA name is required");
+            return false;
+          }
+        },
+      },
+      // collects email
+      {
+        type: "input",
+        name: "email",
+        message:
+          "Please provide an email address for contact purposes (required)",
+        validate: (emailVal) => {
+          if (emailVal) {
+            return true;
+          } else {
+            console.log("\nAn email address is required");
+            return false;
+          }
+        },
+      },
+      // collects github
+      {
+        type: "input",
+        name: "github",
+        message: "Please type in your GitHub username (required)",
+        validate: (githubVal) => {
+          if (githubVal) {
+            return true;
+          } else {
+            console.log("\nYour GitHub username is required");
+            return false;
+          }
+        },
+      },
+    ])
+    .then((contactData) => {
+      projectData.contact.push(contactData);
+      return projectData;
+    });
+};
 
 projectQuestions()
   .then(creditPrompts)
+  .then(licensePrompt)
+  .then(contactInfo)
   .then((readmeData) => {
-    console.log("Test");
+    return generateMarkdown(readmeData);
+  })
+  .then((readme) => {
+    return writeFile(readme);
   });
