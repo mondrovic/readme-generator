@@ -1,3 +1,4 @@
+//generates Table of Contents if applicable
 const generateToC = (toc) => {
   if (!toc) {
     return "";
@@ -11,18 +12,20 @@ const generateToC = (toc) => {
   `;
 };
 
+//generates license data
 const generateLicense = (licenseArr) => {
   return `
   ${licenseArr
     .map(({ license }) => {
       return `
-    License used ${license}
+    ${license}
     `;
     })
     .join("")}
   `;
 };
 
+// generates contact info
 const generateContact = (contactArr) => {
   return `
   ${contactArr
@@ -38,6 +41,7 @@ const generateContact = (contactArr) => {
   `;
 };
 
+// generates contributors
 const generateContr = (contrArr) => {
   return `
   ${contrArr
@@ -52,6 +56,7 @@ const generateContr = (contrArr) => {
 
 module.exports = (templateData) => {
   const { contact, contrib, license, ...rmBody } = templateData;
+  console.log(rmBody);
 
   return `
   # ${rmBody.title}
@@ -60,7 +65,7 @@ module.exports = (templateData) => {
 
   ${rmBody.description}
 
-  ${generateToC(rmBody.confirmToC)}
+  ${generateToC(rmBody.tocConfirm)}
 
   ## Installation
 
